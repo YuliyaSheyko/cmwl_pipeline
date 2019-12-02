@@ -15,7 +15,8 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
     def firstName = column[String]("first_name")
     def lastName = column[String]("last_name")
     def profilePicture = column[ProfilePicture]("profile_picture")
-    def * = (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?) <>
+    def active = column[Boolean]("active")
+    def * = (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?, active) <>
       (User.tupled, User.unapply)
   }
 
@@ -30,5 +31,7 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
   }
 
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
+
+  def deactivateUserAction(email: String) = users.filter(_.email === email).map(_.active).update(false)
 
 }

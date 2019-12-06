@@ -66,3 +66,4 @@ Default configuration can be overloaded in application.properties file located i
 
 ## Developer Guide
 https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
+

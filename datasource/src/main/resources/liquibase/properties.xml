@@ -8,5 +8,6 @@
     <property name="32_length_text.type" value="VARCHAR(32)" dbms="postgresql"/>
     <property name="64_length_text.type" value="VARCHAR(64)" dbms="postgresql"/>
     <property name="binary_data.type" value="BYTEA" dbms="postgresql"/>
+    <property name="user_active.type" value="boolean" dbms="postgresql"/>
 
 </databaseChangeLog>

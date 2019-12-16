@@ -17,7 +17,7 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
     def profilePicture = column[ProfilePicture]("profile_picture")
     def active = column[Boolean]("active")
     def * = (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?, active) <>
-      (User.tupled, User.unapply)
+      ((User.apply _).tupled, User.unapply)
   }
 
   val users = TableQuery[Users]

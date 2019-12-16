@@ -17,6 +17,8 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
   override protected def beforeAll(): Unit =
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
 
+  private val userPassword = "-Pa$$w0rd-"
+
   import components.datastorageModule.userRepository
 
   "UserRepository" when {

@@ -8,13 +8,14 @@ import com.typesafe.config.Config
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
-import cromwell.pipeline.datastorage.dto.{ User }
+import cromwell.pipeline.datastorage.dto.auth.{ Password, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ User, UserEmail }
 import cromwell.pipeline.utils.TestContainersUtils
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }
 import play.api.libs.json.Json
+import cats.implicits._
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
@@ -30,7 +31,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
 
   private val dummyUser: User = TestUserUtils.getDummyUser()
-  private val password: String = "-Pa$$w0rd-"
+  private val password: Password = Password("-Pa$$w0rd-")
 
   "AuthController" when {
 
@@ -54,7 +55,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return token headers if user was successfully registered" in {
         val signUpRequest =
-          SignUpRequest("AnotherJohnDoe-@cromwell.com", password, dummyUser.firstName, dummyUser.lastName)
+          SignUpRequest(UserEmail("AnotherJohnDoe-@cromwell.com"), password, dummyUser.firstName, dummyUser.lastName)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {

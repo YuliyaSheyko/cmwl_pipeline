@@ -19,9 +19,9 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       user <- userRepository.getUserById(userId)
     } yield user.map(UserNoCredentials.fromUser)
 
-  def updateUser(userId: String, request: UserUpdateRequest): Future[Int] =
+  def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =
     userRepository
-      .getUserById(UserId(userId))
+      .getUserById(userId)
       .flatMap(
         userOpt =>
           userOpt.map(
@@ -36,17 +36,17 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       )
 
   def updatePassword(
-    userId: String,
+    userId: UserId,
     request: PasswordUpdateRequest,
     salt: String = Random.nextLong().toHexString
   ): Future[Int] =
     if (request.newPassword == request.repeatPassword) {
-      userRepository.getUserById(UserId(userId)).flatMap {
+      userRepository.getUserById(userId).flatMap {
         case Some(user) =>
           user match {
             case user
-                if (user.passwordHash == StringUtils
-                  .calculatePasswordHash(request.currentPassword, user.passwordSalt)) => {
+                if user.passwordHash == StringUtils
+                  .calculatePasswordHash(request.currentPassword, user.passwordSalt) => {
               val passwordSalt = salt
               val passwordHash = StringUtils.calculatePasswordHash(request.newPassword, passwordSalt)
               userRepository.updatePassword(user.copy(passwordSalt = passwordSalt, passwordHash = passwordHash))

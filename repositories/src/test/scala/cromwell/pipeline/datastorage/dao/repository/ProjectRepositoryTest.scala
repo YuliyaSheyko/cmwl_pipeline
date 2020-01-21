@@ -27,7 +27,7 @@ class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAf
 
     "getUserById" should {
 
-      "find newly added project by id" taggedAs (Dao) in {
+      "find newly added project by id" taggedAs Dao in {
         val addUserFuture = userRepository.addUser(dummyUser)
         val result = for {
           _ <- addUserFuture

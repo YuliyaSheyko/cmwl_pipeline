@@ -4,13 +4,15 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ User, UserEmail, UserId, UserNoCredentials }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+import cats.implicits._
+import cromwell.pipeline.datastorage.dto.auth.Password
 
 import scala.concurrent.Future
 
@@ -30,12 +32,12 @@ class UserControllerTest
 
     "get users by email" should {
 
-      "return the sequence of users" taggedAs (Controller) in {
-        val usersByEmailRequest: String = "@mail"
+      "return the sequence of users" taggedAs Controller in {
+        val usersByEmailRequest = "someDomain@mail.com"
         val userId = dummyUser.userId
         val uEmailRespSeq: Seq[User] = Seq(dummyUser)
 
-        val accessToken = AccessTokenContent(userId.value)
+        val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
@@ -44,9 +46,10 @@ class UserControllerTest
           responseAs[Seq[User]].size shouldEqual 1
         }
       }
-      "return the internal server error if service fails" taggedAs (Controller) in {
-        val usersByEmailRequest: String = "@mail"
-        val accessToken = AccessTokenContent(dummyUser.userId.value)
+      "return the internal server error if service fails" taggedAs Controller in {
+        val usersByEmailRequest: String = "someDomain@mail.com"
+        val userId = UserId.random
+        val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
@@ -54,16 +57,16 @@ class UserControllerTest
           status shouldBe StatusCodes.InternalServerError
         }
       }
-      "return the sequence of users when pattern must contain correct number of entries" taggedAs (Controller) in {
-        val usersByEmailRequest: String = "someDomain.com"
+      "return the sequence of users when pattern must contain correct number of entries" taggedAs Controller in {
+        val usersByEmailRequest: String = "someDomain@gmail.com"
         val userId = dummyUser.userId
 
         val firstDummyUser: User =
-          dummyUser.copy(email = usersByEmailRequest)
+          dummyUser.copy(email = UserEmail(usersByEmailRequest))
         val secondDummyUser: User =
-          dummyUser.copy(email = usersByEmailRequest)
+          dummyUser.copy(email = UserEmail(usersByEmailRequest))
         val uEmailRespSeq: Seq[User] = Seq(firstDummyUser, secondDummyUser)
-        val accessToken = AccessTokenContent(userId.value)
+        val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
@@ -75,10 +78,10 @@ class UserControllerTest
     }
 
     "deactivateUserById" should {
-      "return user's entity with false value if user was successfully deactivated" taggedAs (Controller) in {
+      "return user's entity with false value if user was successfully deactivated" taggedAs Controller in {
         val userId = dummyUser.copy(active = false).userId
         val response = UserNoCredentials.fromUser(dummyUser)
-        val accessToken = AccessTokenContent(userId.value)
+        val accessToken = AccessTokenContent(userId)
 
         when(userService.deactivateUserById(userId)).thenReturn(Future.successful(Some(response)))
 
@@ -87,20 +90,19 @@ class UserControllerTest
           status shouldBe StatusCodes.OK
         }
       }
-      "return server error if user deactivation was failed" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
+      "return server error if user deactivation was failed" taggedAs Controller in {
+        val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateUserById(UserId(userId)))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.deactivateUserById(userId)).thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
-      "return NotFound status if user deactivation was failed" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
+      "return NotFound status if user deactivation was failed" taggedAs Controller in {
+        val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateUserById(UserId(userId))).thenReturn(Future(None))
+        when(userService.deactivateUserById(userId)).thenReturn(Future(None))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
@@ -109,8 +111,8 @@ class UserControllerTest
     }
 
     "update" should {
-      "return NoContent status if user was amended" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
+      "return NoContent status if user was amended" taggedAs Controller in {
+        val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
 
@@ -121,10 +123,10 @@ class UserControllerTest
         }
       }
 
-      "return NoContent status if user's password was amended" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
+      "return NoContent status if user's password was amended" taggedAs Controller in {
+        val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
-        val userPassword = "-Pa$$w0rd-"
+        val userPassword = Password("-Pa$$w0rd-")
         val request = PasswordUpdateRequest(userPassword, userPassword, userPassword)
 
         when(userService.updatePassword(userId, request)).thenReturn(Future.successful(1))
@@ -134,9 +136,9 @@ class UserControllerTest
         }
       }
 
-      "return InternalServerError status if user's id doesn't match" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
-        val accessToken = AccessTokenContent("0")
+      "return InternalServerError status if user's id doesn't match" taggedAs Controller in {
+        val userId = dummyUser.userId
+        val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
 
         when(userService.updateUser(userId, request))
@@ -147,11 +149,15 @@ class UserControllerTest
         }
       }
 
-      "return BadRequest status if user's passwords don't match" taggedAs (Controller) in {
-        val userId = dummyUser.userId.value
+      "return BadRequest status if user's passwords don't match" taggedAs Controller in {
+        val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
-        val userPassword = "-Pa$$w0rd-"
-        val request = PasswordUpdateRequest(userPassword, userPassword + "1", userPassword)
+        val userPassword = Password("-Pa$$w0rd-")
+        val request = PasswordUpdateRequest(
+          userPassword,
+          Password("-Pa$$w0rd-1"),
+          Password("-Pa$$w0rd-1")
+        )
 
         when(userService.updatePassword(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))

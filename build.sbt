@@ -22,7 +22,8 @@ lazy val commonSettings = Seq(
     (scalafmtCheck in Test).value
   },
   compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
-  test in Test := (test in Test).dependsOn(checkFormat).value
+  test in Test := (test in Test).dependsOn(checkFormat).value,
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
@@ -33,7 +34,7 @@ lazy val root = (project in file("."))
     name := "Cromwell pipeline",
     commonSettings
   )
-  .aggregate(portal, datasource)
+  .aggregate(portal, datasource, womtool)
 
 lazy val IntegrationTest = config("it").extend(Test)
 
@@ -52,7 +53,7 @@ lazy val portal = project
     commonSettings,
     libraryDependencies ++= akkaDependencies ++ jsonDependencies,
     Defaults.itSettings,
-    //TODO need to check out parallel execution
+    Seq(parallelExecution in Test := false),
     addCommandAlias("testAll", "; test ; it:test")
   )
   .aggregate(repositories, services, controllers, utils)
@@ -82,3 +83,13 @@ lazy val controllers =
   (project in file("controllers"))
     .settings(libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats)
     .dependsOn(services, utils, repositories % "test->test")
+
+lazy val womtool = (project in file("womtool"))
+  .configs(IntegrationTest)
+  .settings(
+    resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
+    name := "WomTool",
+    commonSettings,
+    libraryDependencies ++= testDependencies ++ cromwellDependencies,
+    addCommandAlias("testAll", "; test ; it:test")
+  )

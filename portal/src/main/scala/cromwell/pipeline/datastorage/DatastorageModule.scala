@@ -5,7 +5,10 @@ import com.typesafe.config.Config
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.{ ProjectEntry, UserEntry }
 import cromwell.pipeline.datastorage.dao.repository.{ ProjectRepository, UserRepository }
+import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, UUID, UserEmail }
+import cromwell.pipeline.utils.validator.Wrapped
 import slick.jdbc.JdbcProfile
+import slick.lifted.StringColumnExtensionMethods
 
 @Module
 class DatastorageModule(config: Config) {
@@ -20,6 +23,22 @@ class DatastorageModule(config: Config) {
 trait Profile {
   val profile: JdbcProfile
 
+  object Implicits {
+
+    import profile.api._
+    import cats.implicits.catsStdShowForString
+    import scala.language.implicitConversions
+
+    implicit def uuidIso: Isomorphism[UUID, String] = iso[UUID, String](_.unwrap, UUID(_))
+    implicit def emailIso: Isomorphism[UserEmail, String] = iso[UserEmail, String](_.unwrap, UserEmail(_))
+    implicit def firstNameIso: Isomorphism[FirstName, String] = iso[FirstName, String](_.unwrap, FirstName(_))
+    implicit def lastNameIso: Isomorphism[LastName, String] = iso[LastName, String](_.unwrap, LastName(_))
+
+    implicit def wrappedStringColumnExtension[T <: Wrapped[String]](c: Rep[T]): StringColumnExtensionMethods[String] =
+      new StringColumnExtensionMethods[String](c.asInstanceOf[Rep[String]])
+
+    private def iso[A, B](map: A => B, comap: B => A) = new Isomorphism(map, comap)
+  }
 }
 
 // https://books.underscore.io/essential-slick/essential-slick-3.html#scaling-to-larger-codebases

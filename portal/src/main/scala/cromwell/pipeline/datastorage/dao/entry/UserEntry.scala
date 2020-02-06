@@ -6,14 +6,8 @@ import cromwell.pipeline.datastorage.dto._
 trait UserEntry {
   this: Profile =>
 
+  import Implicits._
   import profile.api._
-  import cats.implicits.catsStdShowForString
-
-  private def iso[A, B](map: A => B, comap: B => A) = new Isomorphism(map, comap)
-  implicit def uuidColumnType: Isomorphism[UUID, String] = iso[UUID, String](_.unwrap, UUID(_))
-  implicit def emailColumnType: Isomorphism[UserEmail, String] = iso[UserEmail, String](_.unwrap, UserEmail(_))
-  implicit def firstNameColumnType: Isomorphism[FirstName, String] = iso[FirstName, String](_.unwrap, FirstName(_))
-  implicit def lastNameColumnType: Isomorphism[LastName, String] = iso[LastName, String](_.unwrap, LastName(_))
 
   class UserTable(tag: Tag) extends Table[User](tag, "user") {
     def userId = column[UUID]("user_id", O.PrimaryKey)

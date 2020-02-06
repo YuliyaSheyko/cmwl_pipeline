@@ -1,9 +1,7 @@
 package cromwell.pipeline.service
 
-import java.util.UUID
-
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UUID }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -23,7 +21,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       "return id of a new project" in {
         val request =
           ProjectAdditionRequest(
-            ownerId = UserId(UUID.fromString("123e4567-e89b-12d3-a456-426655440000")),
+            ownerId = UUID("123e4567-e89b-12d3-a456-426655440000"),
             name = "projectName",
             repository = "repositoryName"
           )
@@ -42,7 +40,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val project =
           Project(
             projectId = projectId,
-            ownerId = UserId(UUID.fromString("123e4567-e89b-12d3-a456-426655440000")),
+            ownerId = UUID("123e4567-e89b-12d3-a456-426655440000"),
             name = "projectName",
             repository = "repositoryName",
             active = false
@@ -61,7 +59,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val project =
           Project(
             projectId = projectId,
-            ownerId = UserId(UUID.fromString("123e4567-e89b-12d3-a456-426655440000")),
+            ownerId = UUID("123e4567-e89b-12d3-a456-426655440000"),
             name = "projectName",
             repository = "repositoryName",
             active = false

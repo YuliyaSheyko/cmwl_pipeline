@@ -6,6 +6,7 @@ import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UUID }
 trait ProjectEntry {
   this: Profile with UserEntry =>
 
+  import Implicits._
   import profile.api._
 
   class ProjectTable(tag: Tag) extends Table[Project](tag, "project") {

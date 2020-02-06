@@ -1,14 +1,13 @@
 package cromwell.pipeline.datastorage.dao.repository
 
-import java.util.UUID
-
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
+import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, Project, ProjectId, UUID, User, UserEmail }
 import cromwell.pipeline.utils.StringUtils
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.utils.auth.TestContainersUtils
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import cats.implicits._
 
 class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
@@ -46,21 +45,21 @@ class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAf
   }
 
   private def getDummyUser(password: String = userPassword, passwordSalt: String = "salt"): User = {
-    val uuid = UUID.randomUUID().toString
+    val uuid = UUID.random
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
     User(
-      userId = UserId(uuid),
-      email = s"JohnDoe-$uuid@cromwell.com",
+      userId = uuid,
+      email = UserEmail(s"JohnDoe-${uuid.unwrap}@cromwell.com"),
       passwordHash = passwordHash,
       passwordSalt = passwordSalt,
-      firstName = "FirstName",
-      lastName = "LastName",
+      firstName = FirstName("FirstName"),
+      lastName = LastName("LastName"),
       profilePicture = None
     )
   }
 
-  private def getDummyProject(ownerId: UserId): Project = {
-    val uuid = UUID.randomUUID().toString
+  private def getDummyProject(ownerId: UUID): Project = {
+    val uuid = UUID.random
     Project(
       projectId = ProjectId(uuid),
       ownerId = ownerId,

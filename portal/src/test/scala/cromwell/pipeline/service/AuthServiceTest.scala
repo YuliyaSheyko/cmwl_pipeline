@@ -73,7 +73,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   class RefreshTokenContext(lifetime: Long) {
     val currentTimestamp: Long = Instant.now.getEpochSecond
     val refreshTokenContent: AuthContent = RefreshTokenContent(
-      userId = userId.value,
+      userId = userId,
       optRestOfUserSession = Some(expirationTimeInSeconds.userSession - lifetime)
     )
     val refreshTokenClaims: JwtClaim = JwtClaim(

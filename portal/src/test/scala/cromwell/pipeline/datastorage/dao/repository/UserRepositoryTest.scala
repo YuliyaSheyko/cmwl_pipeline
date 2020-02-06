@@ -2,11 +2,13 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, User, UserEmail }
 import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import cromwell.pipeline.tag.Dao
+import cats.implicits._
+import cromwell.pipeline.utils.StringUtils
 
 class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
@@ -53,7 +55,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "getUsersByEmail" should {
 
-      "should find newly added user by email pattern" taggedAs (Dao) in {
+      "should find newly added user by email pattern" taggedAs Dao in {
         val newUser: User = TestUserUtils.getDummyUser()
         userRepository
           .addUser(newUser)
@@ -72,7 +74,11 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
         userRepository.addUser(dummyUser)
 
         val updatedUser =
-          dummyUser.copy(email = "updated@email.com", firstName = "updatedFName", lastName = "updatedLName")
+          dummyUser.copy(
+            email = UserEmail("updated@email.com"),
+            firstName = FirstName("updatedFName"),
+            lastName = LastName("updatedLName")
+          )
         userRepository
           .updateUser(updatedUser)
           .flatMap(
@@ -86,7 +92,8 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
         val dummyUser: User = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser)
 
-        val updatedUser = dummyUser.copy(passwordHash = TestUserUtils.getDummyUser("newPassword").passwordHash)
+        val updatedUser =
+          dummyUser.copy(passwordHash = StringUtils.calculatePasswordHash("newPassword", dummyUser.passwordSalt))
         userRepository
           .updatePassword(updatedUser)
           .flatMap(

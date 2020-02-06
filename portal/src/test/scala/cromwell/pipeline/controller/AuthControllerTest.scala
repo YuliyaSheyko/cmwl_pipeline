@@ -8,10 +8,12 @@ import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, UserEmail }
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, Password, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.validator.DomainValidation
+import cromwell.pipeline.utils.validator.Enable.Unsafe
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 import play.api.libs.json.Json
 import cats.implicits._
+import cromwell.pipeline.utils.auth.TestUserUtils
 
 import scala.concurrent.Future
 
@@ -22,13 +24,14 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
   private val accessToken = "access-token"
   private val refreshToken = "refresh-token"
   private val accessTokenExpiration = 300
+  private val password = TestUserUtils.userPassword
 
   "AuthController" when {
 
     "signIn" should {
 
       "return token headers if user exists" in {
-        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), Password("password"))
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), password)
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(Option(authResponse)))
@@ -40,7 +43,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return Unauthorized status if user doesn't exist" in {
-        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), Password("password"))
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), password)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(None))
 
@@ -69,7 +72,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest with fields validation errors" in {
+      "return BadRequest with fields validation errors" ignore {
         val signUpRequest = SignUpRequest(
           UserEmail("JohnDoe@cromwell.com"),
           Password("Password213"),

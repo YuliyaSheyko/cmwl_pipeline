@@ -1,14 +1,15 @@
 package cromwell.pipeline.utils.auth
 
-import cromwell.pipeline.datastorage.dto.{ UserEmail, FirstName, LastName, User, UUID => UserId }
+import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, UUID, User, UserEmail }
 import cromwell.pipeline.utils.StringUtils
 import cats.implicits._
+import cromwell.pipeline.datastorage.dto.auth.Password
 
 object TestUserUtils {
-  val userPassword = "-Pa$$w0rd-"
+  val userPassword: Password = Password("-Pa$$w0rd-")
 
   def getDummyUser(
-    uuid: UserId = UserId.random,
+    uuid: UUID = UUID.random,
     email: UserEmail = UserEmail("JohnDoe-@cromwell.com"),
     password: String = userPassword,
     passwordSalt: String = "salt",
@@ -19,7 +20,7 @@ object TestUserUtils {
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
     User(
       uuid,
-      UserEmail(s"JohnDoe-$uuid@cromwell.com"),
+      UserEmail(s"JohnDoe-${uuid.unwrap}@cromwell.com"),
       passwordHash,
       passwordSalt,
       firstName,

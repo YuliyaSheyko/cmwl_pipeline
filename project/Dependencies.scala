@@ -15,6 +15,7 @@ object Dependencies {
     val scalaCheck = "1.14.0"
     val mockito = "1.10.19"
     val scalaTest = "3.0.8"
+    val pegdown = "1.6.0"
     val scalaMock = "4.4.0"
     val tcCore = "0.34.0"
     val tcPostgres = "1.12.2"
@@ -38,6 +39,7 @@ object Dependencies {
   val akkaHttpTestKit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test,it"
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck % "test,it"
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest % "test,it"
+  val pegdown = "org.pegdown" % "pegdown" % Version.pegdown % Test
   val mockito = "org.mockito" % "mockito-all" % Version.mockito % Test
   val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % Test
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
@@ -47,7 +49,7 @@ object Dependencies {
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, hikariCP, liquibase, postgresql)
-  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
+  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, pegdown, scalaMock)
   lazy val macwire = Seq(macwireMacros, macwireUtil)
   lazy val testContainers = Seq(tcCore, tcPostgres)
 }

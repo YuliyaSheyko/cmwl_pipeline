@@ -1,10 +1,9 @@
 package cromwell.pipeline.service
 
 import java.time.Instant
-import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.UserId
+import cromwell.pipeline.datastorage.dto.UUID
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
@@ -32,7 +31,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val userRepository: UserRepository = stub[UserRepository]
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
-  private val userId = UserId(UUID.fromString("123e4567-e89b-12d3-a456-426655440000"))
+  private val userId = UUID("123e4567-e89b-12d3-a456-426655440000")
 
   "AuthServiceTest" when {
 
@@ -48,7 +47,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
       "return None for another type of token" in {
         val currentTimestamp = Instant.now.getEpochSecond
-        val accessTokenContent: AuthContent = AccessTokenContent(userId = userId.value)
+        val accessTokenContent: AuthContent = AccessTokenContent(userId = userId)
         val accessTokenClaims = JwtClaim(
           content = Json.stringify(Json.toJson(accessTokenContent)),
           expiration = Some(currentTimestamp + expirationTimeInSeconds.accessToken),

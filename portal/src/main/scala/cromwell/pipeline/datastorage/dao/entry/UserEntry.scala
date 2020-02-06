@@ -7,9 +7,16 @@ trait UserEntry {
   this: Profile =>
 
   import profile.api._
+  import cats.implicits.catsStdShowForString
+
+  private def iso[A, B](map: A => B, comap: B => A) = new Isomorphism(map, comap)
+  implicit def uuidColumnType: Isomorphism[UUID, String] = iso[UUID, String](_.unwrap, UUID(_))
+  implicit def emailColumnType: Isomorphism[UserEmail, String] = iso[UserEmail, String](_.unwrap, UserEmail(_))
+  implicit def firstNameColumnType: Isomorphism[FirstName, String] = iso[FirstName, String](_.unwrap, FirstName(_))
+  implicit def lastNameColumnType: Isomorphism[LastName, String] = iso[LastName, String](_.unwrap, LastName(_))
 
   class UserTable(tag: Tag) extends Table[User](tag, "user") {
-    def userId = column[UserId]("user_id", O.PrimaryKey)
+    def userId = column[UUID]("user_id", O.PrimaryKey)
     def email = column[UserEmail]("email")
     def passwordHash = column[String]("password_hash")
     def passwordSalt = column[String]("password_salt")
@@ -23,7 +30,7 @@ trait UserEntry {
 
   val users = TableQuery[UserTable]
 
-  def getUserByIdAction = Compiled { userId: Rep[UserId] =>
+  def getUserByIdAction = Compiled { userId: Rep[UUID] =>
     users.filter(_.userId === userId).take(1)
   }
 
@@ -32,13 +39,13 @@ trait UserEntry {
   }
 
   def getUsersByEmailAction(emailPattern: String) =
-    users.filter(_.email.like(s"%$emailPattern%")).result
+    users.filter(_.email.like(emailPattern)).result
 
   def addUserAction(user: User) = users.returning(users.map(_.userId)) += user
 
   def deactivateUserByEmail(email: UserEmail) = users.filter(_.email === email).map(_.active).update(false)
 
-  def deactivateUserById(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
+  def deactivateUserById(userId: UUID) = users.filter(_.userId === userId).map(_.active).update(false)
 
   def updateUser(updatedUser: User) =
     users

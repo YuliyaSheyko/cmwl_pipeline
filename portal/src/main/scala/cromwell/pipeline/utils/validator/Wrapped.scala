@@ -13,12 +13,20 @@ trait Wrapped[T] extends Any {
   override def toString: String = s"${this.getClass.getSimpleName}(${unwrap.toString})"
 }
 object Wrapped {
+  import scala.language.implicitConversions
+
+  def wrap[T, W <: Wrapped[T]](implicit constructor: T => W): T => W = constructor
+
   trait Companion {
     type Type
     type Error
     type Wrapper <: Wrapped[Type]
     type ValidationResult[A] = Validated[NonEmptyChain[Error], A]
     implicit def wrappedOrdering(implicit ord: Ordering[Type]): Ordering[Wrapper] = Ordering.by(_.unwrap)
+    implicit def unwrap(wrapped: Wrapper): Type = wrapped.unwrap
+    implicit def wrap(
+      value: Type
+    )(implicit evidence: Wrapped.Enable.Unsafe.type, show: Show[Error]): Companion.this.Wrapper = apply(value)
     protected def create(value: Type): Wrapper
     protected def validate(value: Type): ValidationResult[Type]
     def from(value: Type): ValidationResult[Wrapper] =

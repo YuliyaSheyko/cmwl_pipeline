@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.dao.entry
 
 import cromwell.pipeline.datastorage.Profile
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UUID }
 
 trait ProjectEntry {
   this: Profile with UserEntry =>
@@ -10,7 +10,7 @@ trait ProjectEntry {
 
   class ProjectTable(tag: Tag) extends Table[Project](tag, "project") {
     def projectId = column[ProjectId]("project_id", O.PrimaryKey)
-    def ownerId = column[UserId]("owner_id")
+    def ownerId = column[UUID]("owner_id")
     def name = column[String]("name")
     def repository = column[String]("repository")
     def active = column[Boolean]("active")

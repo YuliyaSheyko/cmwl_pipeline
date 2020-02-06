@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage.dto
 import play.api.libs.json.{ Json, OFormat }
 
 final case class UserNoCredentials(
-  userId: UserId,
+  userId: UUID,
   email: UserEmail,
   firstName: FirstName,
   lastName: LastName,

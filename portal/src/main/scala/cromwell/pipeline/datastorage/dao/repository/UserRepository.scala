@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.{ User, UserEmail, UserId }
+import cromwell.pipeline.datastorage.dto.{ UserEmail, User, UUID => UserId }
 
 import scala.concurrent.Future
 
